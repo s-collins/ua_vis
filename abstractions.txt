@@ -1,0 +1,50 @@
+Abstractions:
+
+ - Camera
+   * Taking a picture
+     - dimensions
+     - grayscale/color
+   * Taking a video
+     - frame rate
+     
+ - Image
+   * Metadata for image:
+     - dimensions
+     - number of channels (rgb, grayscale, etc...)
+ 
+ - Communication
+   * Communicating with the router card of the robot
+   * Receive gyroscope information
+   * Send 
+   
+ - Transformation
+   * Algorithm that modifies an image
+   * A transformation should be able to employ another transformation
+   * Examples:
+     - Convert to grayscale
+     - Cropping
+     - Transpose
+     - Seam Carving
+
+ - Robot Position
+   * orientation of the robot (based on gyroscope)
+
+ - Obstacle
+   * spatial position
+   * size
+   
+ - Route
+   * list of positions/waypoints for the robot to got to
+
+ - MappingSytem
+   * Converts 2D image coordinates into 3D coordinates relative to the robot's position/orientation
+   
+ - GUI for Testing/Experimentation
+   * include interface for loading a image from file
+   * real-time experimentation with parameter values
+ 
+ - FileManager
+   * loading images (various types) from file system
+   * saving images (various types) to file system
+   
+   
