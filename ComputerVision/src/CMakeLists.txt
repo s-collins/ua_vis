@@ -1,0 +1,2 @@
+add_library(ComputerVision ComputerVision.cpp)
+target_include_directories(ComputerVision PUBLIC include)
