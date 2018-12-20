@@ -46,6 +46,7 @@ namespace ComputerVision {
     int getIntegerValue () const;
     double getDoubleValue () const;
     Type getType () const;
+    std::string const & getName () const;
 
   private:
     union Representation {

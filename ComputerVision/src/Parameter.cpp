@@ -75,4 +75,10 @@ namespace ComputerVision {
     return type_;
   }
 
+  std::string const &
+  Parameter::getName () const
+  {
+    return name_;
+  }
+
 } // namespace ComputerVision
