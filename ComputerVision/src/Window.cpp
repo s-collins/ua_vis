@@ -13,6 +13,7 @@ namespace ComputerVision{
 	Window::Window(std::string name, Image& image)
 	:Component(WINDOW),name_(name)	
 	{
+		create();	
 		cv::imshow(name_,image);
 	}
 
@@ -25,7 +26,7 @@ namespace ComputerVision{
 	/*------------------------------ Initializer ------------------------------*/
 	void Window::create() 
 	{
-		cv::namedWindow(name_);
+		cv::namedWindow(name_,cv::WINDOW_AUTOSIZE);
 	}
 };
 

@@ -6,7 +6,9 @@ enable_testing()
 find_package(GTest REQUIRED)
 
 # test executable
-add_executable(ComputerVisionTests ComputerVisionTests.cpp)
+add_executable(ComputerVisionTests 
+				ComputerVisionTests.cpp
+				ComponentTests.cpp)
 target_link_libraries(ComputerVisionTests
   PRIVATE
     ComputerVision
