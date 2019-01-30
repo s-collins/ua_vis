@@ -1,10 +1,3 @@
-"""
-Types of Events:
-
- - Mouse motion over the image
- - Click event on the image
-"""
-
 import Tkinter as tk
 from PIL import Image
 from PIL import ImageTk
@@ -52,25 +45,27 @@ class LabelerPresentationModel:
         self.parent = parent
         self.base_image = cv_image
         self.labels = []
-
-        # indicates whether or not currently labeling
-        self.labeling = False
-        self.label_origin = None
-
-        # Initialize the view
+        self.labeling = False       # indicates whether or not currently labeling
+        self.label_origin = None    # top-left coord of label in progress
+        self.cross_pos = (0, 0)     # coord of center of cross
         self.view = LabelerView(self.parent.get_view())
         self.view.update_image(self.base_image)
         self.view.set_mouse_motion_callback(self.mouse_motion_callback)
         self.view.set_mouse_click_callback(self.mouse_click_callback)
 
     def mouse_motion_callback(self, event):
-        """Updates the position of the crosshair and refreshes the image display."""
-        image = copy.deepcopy(self.base_image)
-        self.draw_labels(image)
-        self.draw_crosshair(image, event.x, event.y)
+        """Updates the position of the cross and refreshes the image display."""
+        self.cross_pos = (event.x, event.y)
+        self.refresh_image_display()
+
+    def refresh_image_display(self):
+        """Updates the image in the GUI by drawing labels and cross to show mouse pos"""
+        output = copy.deepcopy(self.base_image)
+        self.draw_labels(output)
+        self.draw_cross(output)
         if self.labeling:
-            cv.rectangle(image, self.label_origin, (event.x, event.y), LabelerPresentationModel.BOX_COLOR, 1)
-        self.view.update_image(image)
+            cv.rectangle(output, self.label_origin, self.cross_pos, LabelerPresentationModel.BOX_COLOR, 1)
+        self.view.update_image(output)
 
     def mouse_click_callback(self, event):
         if self.labeling:
@@ -80,17 +75,20 @@ class LabelerPresentationModel:
         else:
             self.label_origin = (event.x, event.y)
             self.labeling = True
-#
+        self.refresh_image_display()
+
     def draw_labels(self, image):
         for label in self.labels:
             cv.rectangle(image, label[0], label[1], LabelerPresentationModel.BOX_COLOR, 2)
 
-    def draw_crosshair(self, image, x, y):
+    def draw_cross(self, image):
         height, width, channels = image.shape
+        (x, y) = self.cross_pos
         line1 = ((0, y), (width, y))
         line2 = ((x, 0), (x, height))
         cv.line(image, line1[0], line1[1], LabelerPresentationModel.CROSSHAIR_COLOR)
         cv.line(image, line2[0], line2[1], LabelerPresentationModel.CROSSHAIR_COLOR)
+
 
 class Parent:
 
