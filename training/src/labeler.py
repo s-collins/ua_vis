@@ -1,4 +1,5 @@
 import Tkinter as tk
+import ttk
 from PIL import Image
 from PIL import ImageTk
 import cv2 as cv
@@ -16,10 +17,16 @@ class LabelerView(tk.Frame):
         self.__layout_widgets()
 
     def __create_widgets(self):
-        self.lbl_image = tk.Label(self)
+        self.sec_labeling = tk.LabelFrame(self, text='Labeling', padx=10, pady=10)
+        self.lbl_image = tk.Label(self.sec_labeling)
+        self.list = tk.Listbox(self.sec_labeling, height=5)
+        self.but = tk.Button(self.sec_labeling, text='Remove Selected Label')
 
     def __layout_widgets(self):
-        self.lbl_image.grid()
+        self.sec_labeling.grid(padx=10, pady=10)
+        self.lbl_image.grid(row=0)
+        self.list.grid(row=1, sticky='we')
+        self.but.grid(row=2, sticky='we')
 
     def set_mouse_motion_callback(self, callback):
         self.lbl_image.bind('<Motion>', callback)
@@ -64,30 +71,32 @@ class LabelerPresentationModel:
         self.draw_labels(output)
         self.draw_cross(output)
         if self.labeling:
-            cv.rectangle(output, self.label_origin, self.cross_pos, LabelerPresentationModel.BOX_COLOR, 1)
+            cv.rectangle(output, self.label_origin, self.cross_pos, self.BOX_COLOR, 1)
         self.view.update_image(output)
 
     def mouse_click_callback(self, event):
+        """Responds to mouse click inside image by drawing a new label."""
         if self.labeling:
             new_label = (self.label_origin, (event.x, event.y))
             self.labels.append(new_label)
-            self.labeling = False
         else:
             self.label_origin = (event.x, event.y)
-            self.labeling = True
+        self.labeling = not self.labeling
         self.refresh_image_display()
 
     def draw_labels(self, image):
+        """Draws all of the existing labels on top of the given image."""
         for label in self.labels:
-            cv.rectangle(image, label[0], label[1], LabelerPresentationModel.BOX_COLOR, 2)
+            cv.rectangle(image, label[0], label[1], self.BOX_COLOR, 2)
 
     def draw_cross(self, image):
+        """Draws the cross on top of the given image."""
         height, width, channels = image.shape
         (x, y) = self.cross_pos
         line1 = ((0, y), (width, y))
         line2 = ((x, 0), (x, height))
-        cv.line(image, line1[0], line1[1], LabelerPresentationModel.CROSSHAIR_COLOR)
-        cv.line(image, line2[0], line2[1], LabelerPresentationModel.CROSSHAIR_COLOR)
+        cv.line(image, line1[0], line1[1], self.CROSSHAIR_COLOR)
+        cv.line(image, line2[0], line2[1], self.CROSSHAIR_COLOR)
 
 
 class Parent:
