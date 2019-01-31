@@ -1,71 +1,9 @@
-import Tkinter as tk
-import ttk
-from PIL import Image
-from PIL import ImageTk
 import cv2 as cv
 import copy
+from models import Property
 
 
-class TrainingExample:
-
-    def __init__(self, image, labels=None):
-        self.image = image
-        self.labels = labels
-        if self.labels is None:
-            self.labels = []
-
-
-class LabelerView(tk.Frame):
-
-    def __init__(self, parent, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs)
-        self.grid()
-
-        # Configure the view
-        self.__create_widgets()
-        self.__layout_widgets()
-
-    def __create_widgets(self):
-        self.sec_labeling = tk.LabelFrame(self, text='Labeling', padx=10, pady=10)
-        self.lbl_image = tk.Label(self.sec_labeling)
-        self.list = tk.Listbox(self.sec_labeling, height=5)
-        self.but = tk.Button(self.sec_labeling, text='Remove Selected Label')
-
-    def __layout_widgets(self):
-        self.sec_labeling.grid(padx=10, pady=10)
-        self.lbl_image.grid(row=0)
-        self.list.grid(row=1, sticky='we')
-        self.but.grid(row=2, sticky='we')
-
-    def set_mouse_motion_callback(self, callback):
-        self.lbl_image.bind('<Motion>', callback)
-
-    def set_mouse_click_callback(self, callback):
-        self.lbl_image.bind('<Button-1>', callback)
-
-    def set_list_selection_callback(self, callback):
-        self.list.bind('<<ListboxSelect>>', callback)
-
-    def set_delete_selected_command(self, callback):
-        self.but.config(command=callback)
-
-    def refresh_image(self, cv_image):
-        im = cv.cvtColor(cv_image, cv.COLOR_BGR2RGB)
-        im = Image.fromarray(im)
-        im = ImageTk.PhotoImage(im)
-        self.lbl_image.configure(image=im)
-        self.lbl_image.image = im
-
-    def refresh_label_list(self, labels, selected):
-        self.list.delete(0, tk.END)
-        for label in labels:
-            text = str(label[0]) + ', ' + str(label[1])
-            self.list.insert(tk.END, text)
-        if selected is not None:
-            self.list.selection_set(selected)
-
-
-class LabelerPresentationModel:
+class LabelingEditorController:
 
     # uses (blue, green, red) format
     CROSS_COLOR = (0, 0, 255)
@@ -74,20 +12,33 @@ class LabelerPresentationModel:
     BOX_IN_PROGRESS_WEIGHT = 1
     BOX_FINISHED_WEIGHT = 2
 
-    def __init__(self, parent, training_example):
-        self.parent = parent
+    ####################################################################################################################
+    # INITIALIZATION
+    ####################################################################################################################
+
+    def __init__(self, view, training_example):
         self.training_example = training_example
         self.labeling = False
         self.box = [None, None]
         self.cross = (0, 0)
         self.selected_label = None
-        self.view = LabelerView(self.parent.get_view())
+        self.view = view
+        self.__assign_callbacks()
+        self.refresh_view()
+
+    def __assign_callbacks(self):
         self.view.set_mouse_motion_callback(self.mouse_motion_callback)
         self.view.set_mouse_click_callback(self.mouse_click_callback)
         self.view.set_list_selection_callback(self.list_selection_callback)
         self.view.set_delete_selected_command(self.delete_selected)
-        self.refresh_image()
+
+    ####################################################################################################################
+    # REFRESHING THE VIEW
+    ####################################################################################################################
+
+    def refresh_view(self):
         self.refresh_label_list()
+        self.refresh_image()
 
     def refresh_image(self):
         """Updates the image in the GUI by drawing labels and cross."""
@@ -100,6 +51,10 @@ class LabelerPresentationModel:
     def refresh_label_list(self):
         """Updates the GUI's listbox so that it contains coordinates of current labels."""
         self.view.refresh_label_list(self.training_example.labels, self.selected_label)
+
+    ####################################################################################################################
+    # SHAPE DRAWING
+    ####################################################################################################################
 
     def draw_labels(self, image):
         """Draws all of the existing labels on top of the given image."""
@@ -123,6 +78,10 @@ class LabelerPresentationModel:
         if self.labeling:
             cv.rectangle(image, self.box[0], self.box[1], self.BOX_COLOR, self.BOX_IN_PROGRESS_WEIGHT)
 
+    ####################################################################################################################
+    # CALLBACKS
+    ####################################################################################################################
+
     def mouse_motion_callback(self, event):
         """Updates the position of the cross and refreshes the image display."""
         self.cross = (event.x, event.y)
@@ -134,12 +93,11 @@ class LabelerPresentationModel:
         if self.labeling:
             self.box[1] = (event.x, event.y)
             self.training_example.labels.append(self.box)
-            self.selected_label = len(training_example.labels) - 1
+            self.selected_label = len(self.training_example.labels) - 1
             self.box = [None, None]
         else:
             self.box[0] = (event.x, event.y)
-        self.refresh_label_list()
-        self.refresh_image()
+        self.refresh_view()
         self.labeling = not self.labeling
 
     def list_selection_callback(self, event):
@@ -154,29 +112,27 @@ class LabelerPresentationModel:
         labels = self.training_example.labels
         if self.selected_label < len(labels):
             del labels[self.selected_label]
-        self.refresh_label_list()
-        self.refresh_image()
+        self.refresh_view()
 
 
-class Parent:
+class PropertyEditorController:
 
-    def __init__(self):
-        self.root = tk.Tk()
-        self.root.grid()
+    def __init__(self, view, training_example):
+        self.view = view
+        self.training_example = training_example
 
-    def get_view(self):
-        return self.root
+        # TODO: change the tuples below so that they are
+        #       retreived from the database
+        self.properties = [
+            Property.create_string("Collected By", ("Sean", "Venkata")),
+            Property.create_integer("Number of Rocks", (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
+            Property.create_string("Light Level: ", ("Bright", "Dark"))
+        ]
 
-    def run(self):
-        self.root.mainloop()
+        for p in self.properties:
+            self.view.add_property(p)
 
-
-app = Parent()
-image = cv.imread('image.jpg', cv.IMREAD_COLOR)
-training_example = TrainingExample(image)
-labeler = LabelerPresentationModel(app, training_example)
-app.run()
-
+        #TODO: property value should be initialized according to the training example..
 
 
 
