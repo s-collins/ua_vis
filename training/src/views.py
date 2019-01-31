@@ -1,4 +1,5 @@
 import Tkinter as tk
+import ttk
 from PIL import Image, ImageTk
 import cv2 as cv
 
@@ -60,7 +61,7 @@ class PropertyEditorView(tk.Frame):
         self.__layout_widgets()
 
     def __create_widgets(self):
-        self.sec_form = tk.LabelFrame(self, text='Attribute Form', padx=10, pady=10)
+        self.sec_form = tk.LabelFrame(self, text='Properties', padx=10, pady=10)
         self.labels = []
         self.menus = []
 
@@ -87,6 +88,36 @@ class TrainingExampleEditorView(tk.Frame):
         self.labeling_view = LabelingEditorView(self)
         self.properties_view = PropertyEditorView(self)
 
+        self.buttons = tk.Frame(self, padx=10, pady=10)
+        self.save_button = tk.Button(self.buttons, text='Save')
+        self.cancel_button = tk.Button(self.buttons, text='Cancel')
+
     def __layout_widgets(self):
-        self.labeling_view.grid(row=0, column=0)
-        self.properties_view.grid(row=0, column=1, sticky='n')
+        self.labeling_view.grid(row=0, column=0, rowspan=2)
+        self.properties_view.grid(row=0, column=1, sticky='nwe')
+        self.buttons.grid(row=1, column=1, sticky='es')
+        self.save_button.grid(row=0, column=0)
+        self.cancel_button.grid(row=0, column=1)
+
+from collection_gui import *
+from camera import *
+
+class View(tk.Frame):
+
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent, *args, **kwargs)
+        self.__create_widgets()
+        self.__layout_widgets()
+
+    def __create_widgets(self):
+        self.notebook = ttk.Notebook(self)
+
+        camera = Camera()
+        self.capture = CollectionGUI(self, camera, None)
+        self.notebook.add(self.capture, text='Capture')
+
+        self.editor_view = TrainingExampleEditorView(self.notebook)
+        self.notebook.add(self.editor_view, text='Edit')
+
+    def __layout_widgets(self):
+        self.notebook.grid(sticky='nsew')

@@ -17,7 +17,7 @@ class CollectionGUI(tk.Frame):
         self.parent = parent
         self.camera = camera
         self.database = database
-        self.directory = tkFileDialog.askdirectory()
+        self.directory = ''
         self.__create_widgets()
         self.__layout_widgets()
         self.__configure_callbacks()
@@ -58,8 +58,8 @@ class CollectionGUI(tk.Frame):
         self.parent.after(CollectionGUI.REFRESH_RATE, self.update_image)
 
 
-root = tk.Tk()
-database = None
-camera = Camera()
-gui = CollectionGUI(root, camera, database)
-root.mainloop()
+#root = tk.Tk()
+#database = None
+#camera = Camera()
+#gui = CollectionGUI(root, camera, database)
+#root.mainloop()

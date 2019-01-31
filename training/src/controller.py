@@ -1,6 +1,6 @@
 import cv2 as cv
 import copy
-from models import Property
+from models import *
 
 
 class LabelingEditorController:
@@ -134,5 +134,18 @@ class PropertyEditorController:
 
         #TODO: property value should be initialized according to the training example..
 
+class TrainingExampleEditorController:
 
+    def __init__(self, view, training_example):
+        self.view = view
+        self.training_example = training_example
+        self.labeling_ctrl = LabelingEditorController(self.view.labeling_view, training_example)
+        self.properties_ctrl = PropertyEditorController(self.view.properties_view, training_example)
 
+class Controller:
+
+    def __init__(self, view):
+        self.view = view
+        image = cv.imread('image.jpg', cv.IMREAD_COLOR)
+        training_example = TrainingExample(image)
+        self.editor_ctrl = TrainingExampleEditorController(self.view.editor_view, training_example)
