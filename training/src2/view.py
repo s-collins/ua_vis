@@ -103,12 +103,14 @@ class EditTab(tk.Frame):
         self.controller = controller
         self.labeler = Labeler(self, controller)
         self.property_editor = PropertyEditor(self, controller)
+        self.save_button = tk.Button(self, text='Save')
         self.model = None
         self.__layout()
 
     def __layout(self):
-        self.labeler.grid(row=0, column=0)
+        self.labeler.grid(row=0, column=0, rowspan=2)
         self.property_editor.grid(row=0, column=1, sticky='n')
+        self.save_button.grid(row=1, column=1, sticky='wes', padx=10, pady=10)
 
     def set_model(self, model):
         self.model = model
@@ -126,22 +128,21 @@ class Labeler(tk.Frame):
     def __init__(self, master, controller, *args, **kwargs):
         tk.Frame.__init__(self, master, *args, **kwargs)
         self.controller = controller
-
-        self.label_frame = tk.LabelFrame(self, text='Labeler', padx=10, pady=10)
-
-        self.image = tk.Label(self.label_frame)
-        self.listbox = tk.Listbox(self.label_frame, height=10, selectbackground='Blue', selectforeground='White')
+        self.image_frame = tk.LabelFrame(self, text='Image', padx=10, pady=10)
+        self.label_frame = tk.LabelFrame(self, text='Labels', padx=10, pady=10)
+        self.image = tk.Label(self.image_frame)
+        self.listbox = tk.Listbox(self.label_frame, height=6, selectbackground='Blue', selectforeground='White')
         self.button = tk.Button(self.label_frame, text='Remove Selected')
         self.__layout()
         self.__config_callbacks()
 
     def __layout(self):
-        self.label_frame.grid(padx=10, pady=10, sticky='nswe')
+        self.image_frame.grid(row=0, column=0, padx=10, pady=10, sticky='we')
         self.image.grid(row=0, column=0)
-        self.listbox.grid(row=1, column=0, sticky='we')
-        self.button.grid(row=2, column=0, sticky='we')
+        self.label_frame.grid(row=1, column=0, padx=10, pady=10, sticky='we')
+        self.listbox.pack(fill=tk.BOTH, expand=True)
+        self.button.pack(fill=tk.BOTH, expand=True)
 
-    # TODO: implement
     def __config_callbacks(self):
         self.image.bind('<Motion>', self.controller.mouse_motion_on_labeling_image_display)
         self.image.bind('<Button-1>', self.controller.mouse_click_on_labeling_image_display)

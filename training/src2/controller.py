@@ -142,9 +142,11 @@ class Controller:
         self.edit_state.delete_selected_label()
 
     def select_label_in_list(self, event):
-        self.edit_state.set_selected_label(event.widget.curselection()[0])
+        selection = event.widget.curselection()
+        if selection:
+            self.edit_state.set_selected_label(selection[0])
 
 
-#camera = FakeCamera()
-camera = Camera()
+camera = FakeCamera()
+#camera = Camera()
 Controller(camera).run()
