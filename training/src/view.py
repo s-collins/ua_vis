@@ -41,20 +41,39 @@ class ProjectTab(tk.Frame):
         tk.Frame.__init__(self, master, *args, **kwargs)
         self.controller = controller
 
-        self.label_frame = tk.LabelFrame(self, text='Project Settings', padx=10, pady=10)
-        self.cur_proj_label = tk.Label(self.label_frame, text='Current Project:')
-        self.cur_proj_text = tk.Text(self.label_frame, height=1)
+        self.selection_frame = tk.LabelFrame(self, text='Select Project', padx=10, pady=10)
+        self.label1 = tk.Label(self.selection_frame, text='Current Project:')
+
+        self.creation_frame = tk.LabelFrame(self, text='Create Project', padx=10, pady=10)
+        self.label2 = tk.Label(self.creation_frame, text='Name of Project:')
+        self.project_name_entry = tk.Entry(self.creation_frame)
+        self.create_button = tk.Button(self.creation_frame, text='Create')
 
         self.__layout()
         self.__configure_callbacks()
 
     def __layout(self):
-        self.label_frame.grid(padx=10, pady=10)
-        self.cur_proj_label.grid(row=0, column=0)
-        self.cur_proj_text.grid(row=0, column=1)
+        self.selection_frame.grid(row=0, column=0, padx=10, pady=10, sticky='ns')
+        self.label1.pack(anchor='w')
+        self.creation_frame.grid(row=0, column=1, padx=10, pady=10, sticky='ns')
+        self.label2.pack(anchor='w')
+        self.project_name_entry.pack(fill=tk.BOTH, expand=True)
+        self.create_button.pack(fill=tk.BOTH, expand=True)
 
     def __configure_callbacks(self):
         pass
+
+    def set_model(self, model):
+        self.model = model
+
+    def notify(self):
+        options = self.model.get_project_list()
+        selected = tk.StringVar(self)
+        index = self.model.get_selected_index()
+        if index is not None:
+            selected.set(options[index])
+        self.projects_menu = apply(tk.OptionMenu, (self.selection_frame, selected) + tuple(options))
+        self.projects_menu.pack(fill=tk.BOTH)
 
 
 # -----------------------------------------------------------------------------------------------------------------------

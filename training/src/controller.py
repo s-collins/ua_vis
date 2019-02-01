@@ -1,9 +1,34 @@
 import Tkinter as tk
-import cv2 as cv
 from view import View
 from property import Property
 from camera import *
 from training_example import TrainingExample
+
+
+class ProjectTabState:
+
+    def __init__(self):
+        self.current_project_index = None
+        self.projects = []
+        self.views = []
+
+    def populate_project_list(self, projects):
+        self.projects = projects
+        self.notify_all()
+
+    def register(self, view):
+        view.set_model(self)
+        self.views.append(view)
+
+    def notify_all(self):
+        for view in self.views:
+            view.notify()
+
+    def get_selected_index(self):
+        return self.current_project_index
+
+    def get_project_list(self):
+        return self.projects
 
 
 class EditTabState:
@@ -111,6 +136,11 @@ class Controller:
         # Variables to hold state
         self.edit_state = EditTabState()
         self.edit_state.register(self.view.edit_tab)
+        self.project_state = ProjectTabState()
+        self.project_state.register(self.view.project_tab)
+
+        # TODO: Read projects from database
+        self.project_state.populate_project_list(['Project One', 'Project Two'])
 
         self.root.after(self.REFRESH_RATE, self.update_capture_feed)
 
