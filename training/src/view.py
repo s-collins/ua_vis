@@ -25,9 +25,18 @@ class View(tk.Frame):
         self.notebook.add(self.edit_tab, text='Edit')
 
         self.__layout()
+        self.__configure_callbacks()
 
     def __layout(self):
         self.notebook.grid()
+
+    def __configure_callbacks(self):
+        self.notebook.bind('<<NotebookTabChanged>>', self.resize_tab)
+
+    def resize_tab(self, event):
+        event.widget.update_idletasks()
+        tab = event.widget.nametowidget(event.widget.select())
+        event.widget.configure(height=tab.winfo_reqheight(), width=tab.winfo_reqwidth())
 
 
 # -----------------------------------------------------------------------------------------------------------------------
@@ -53,9 +62,9 @@ class ProjectTab(tk.Frame):
         self.__configure_callbacks()
 
     def __layout(self):
-        self.selection_frame.grid(row=0, column=0, padx=10, pady=10, sticky='ns')
+        self.selection_frame.grid(row=0, column=0, padx=10, pady=10, sticky='we')
         self.label1.pack(anchor='w')
-        self.creation_frame.grid(row=0, column=1, padx=10, pady=10, sticky='ns')
+        self.creation_frame.grid(row=1, column=0, padx=10, pady=10, sticky='we')
         self.label2.pack(anchor='w')
         self.project_name_entry.pack(fill=tk.BOTH, expand=True)
         self.create_button.pack(fill=tk.BOTH, expand=True)
