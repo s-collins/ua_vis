@@ -1,151 +1,152 @@
+import Tkinter as tk
 import cv2 as cv
-import copy
-from models import *
+from view import View
+from property import Property
+from camera import *
+from training_example import TrainingExample
 
 
-class LabelingEditorController:
+class EditTabState:
 
-    # uses (blue, green, red) format
-    CROSS_COLOR = (0, 0, 255)
-    BOX_COLOR = (0, 255, 0)
-    SELECTED_BOX_COLOR = (255, 0, 0)
-    BOX_IN_PROGRESS_WEIGHT = 1
-    BOX_FINISHED_WEIGHT = 2
+    def __init__(self):
+        self.box_in_progress = False
+        self.box_x = None
+        self.box_y = None
+        self.cross_x = 0
+        self.cross_y = 0
+        self.training_example = TrainingExample()
+        self.views = []
+        self.selected_index = None
 
-    ####################################################################################################################
-    # INITIALIZATION
-    ####################################################################################################################
+    def reset(self):
+        self.box_in_progress = False
+        self.box_x = None
+        self.box_y = None
+        self.cross_x = 0
+        self.cross_y = 0
+        self.training_example = TrainingExample()
+        self.selected_index = None
 
-    def __init__(self, view, training_example):
-        self.training_example = training_example
-        self.labeling = False
-        self.box = [None, None]
-        self.cross = (0, 0)
-        self.selected_label = None
-        self.view = view
-        self.__assign_callbacks()
-        self.refresh_view()
+    def register(self, view):
+        """Registers a view with this object so that it will be notified on changes."""
+        self.views.append(view)
+        view.set_model(self)
 
-    def __assign_callbacks(self):
-        self.view.set_mouse_motion_callback(self.mouse_motion_callback)
-        self.view.set_mouse_click_callback(self.mouse_click_callback)
-        self.view.set_list_selection_callback(self.list_selection_callback)
-        self.view.set_delete_selected_command(self.delete_selected)
+    def notify_all(self):
+        for view in self.views:
+            view.notify()
 
-    ####################################################################################################################
-    # REFRESHING THE VIEW
-    ####################################################################################################################
+    def set_image(self, image):
+        self.training_example.image = image
+        self.notify_all()
 
-    def refresh_view(self):
-        self.refresh_label_list()
-        self.refresh_image()
+    def set_cross_pos(self, x, y):
+        self.cross_x = x
+        self.cross_y = y
+        self.notify_all()
 
-    def refresh_image(self):
-        """Updates the image in the GUI by drawing labels and cross."""
-        output = copy.deepcopy(self.training_example.image)
-        self.draw_labels(output)
-        self.draw_cross(output)
-        self.draw_box(output)
-        self.view.refresh_image(output)
+    def set_box_origin(self, x, y):
+        self.box_x = x
+        self.box_y = y
+        self.box_in_progress = True
+        self.notify_all()
 
-    def refresh_label_list(self):
-        """Updates the GUI's listbox so that it contains coordinates of current labels."""
-        self.view.refresh_label_list(self.training_example.labels, self.selected_label)
+    def set_selected_label(self, index):
+        self.selected_index = index
+        self.notify_all()
 
-    ####################################################################################################################
-    # SHAPE DRAWING
-    ####################################################################################################################
+    def add_label(self, x, y):
+        label = ((self.box_x, self.box_y), (x, y))
+        self.training_example.labels.append(label)
+        self.box_in_progress = False
+        self.box_x = None
+        self.box_y = None
+        self.notify_all()
 
-    def draw_labels(self, image):
-        """Draws all of the existing labels on top of the given image."""
-        for i in range(len(self.training_example.labels)):
-            label = self.training_example.labels[i]
-            if i == self.selected_label:
-                cv.rectangle(image, label[0], label[1], self.SELECTED_BOX_COLOR, 2)
-            else:
-                cv.rectangle(image, label[0], label[1], self.BOX_COLOR, 2)
-
-    def draw_cross(self, image):
-        """Draws the cross on top of the given image."""
-        height, width, channels = image.shape
-        (x, y) = self.cross
-        line1 = ((0, y), (width, y))
-        line2 = ((x, 0), (x, height))
-        cv.line(image, line1[0], line1[1], self.CROSS_COLOR)
-        cv.line(image, line2[0], line2[1], self.CROSS_COLOR)
-
-    def draw_box(self, image):
-        if self.labeling:
-            cv.rectangle(image, self.box[0], self.box[1], self.BOX_COLOR, self.BOX_IN_PROGRESS_WEIGHT)
-
-    ####################################################################################################################
-    # CALLBACKS
-    ####################################################################################################################
-
-    def mouse_motion_callback(self, event):
-        """Updates the position of the cross and refreshes the image display."""
-        self.cross = (event.x, event.y)
-        self.box[1] = self.cross
-        self.refresh_image()
-
-    def mouse_click_callback(self, event):
-        """Responds to mouse click inside image by drawing a new label."""
-        if self.labeling:
-            self.box[1] = (event.x, event.y)
-            self.training_example.labels.append(self.box)
-            self.selected_label = len(self.training_example.labels) - 1
-            self.box = [None, None]
-        else:
-            self.box[0] = (event.x, event.y)
-        self.refresh_view()
-        self.labeling = not self.labeling
-
-    def list_selection_callback(self, event):
-        """Updates the selected label."""
-        self.selected_label = event.widget.curselection()[0]
-        self.refresh_image()
-
-    def delete_selected(self):
-        """Removes currently selected label."""
-        if self.selected_label is None:
+    def delete_selected_label(self):
+        if self.selected_index is None:
             return
-        labels = self.training_example.labels
-        if self.selected_label < len(labels):
-            del labels[self.selected_label]
-        self.refresh_view()
+        del self.training_example.labels[self.selected_index]
+        if self.selected_index != 0:
+            self.selected_index -= 1
+        else:
+            self.selected_index = None
+        self.notify_all()
 
+    def is_box_in_progress(self):
+        return self.box_in_progress
 
-class PropertyEditorController:
+    def get_image(self):
+        return self.training_example.image
 
-    def __init__(self, view, training_example):
-        self.view = view
-        self.training_example = training_example
+    def get_cross(self):
+        return self.cross_x, self.cross_y
 
-        # TODO: change the tuples below so that they are
-        #       retreived from the database
-        self.properties = [
-            Property.create_string("Collected By", ("Sean", "Venkata")),
-            Property.create_integer("Number of Rocks", (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
-            Property.create_string("Light Level: ", ("Bright", "Dark"))
-        ]
+    def get_labels(self):
+        return self.training_example.labels
 
-        for p in self.properties:
-            self.view.add_property(p)
+    def get_box_origin(self):
+        return self.box_x, self.box_y
 
-        #TODO: property value should be initialized according to the training example..
+    def get_selection_index(self):
+        return self.selected_index
 
-class TrainingExampleEditorController:
-
-    def __init__(self, view, training_example):
-        self.view = view
-        self.training_example = training_example
-        self.labeling_ctrl = LabelingEditorController(self.view.labeling_view, training_example)
-        self.properties_ctrl = PropertyEditorController(self.view.properties_view, training_example)
 
 class Controller:
 
-    def __init__(self, view):
-        self.view = view
-        image = cv.imread('image.jpg', cv.IMREAD_COLOR)
-        training_example = TrainingExample(image)
-        self.editor_ctrl = TrainingExampleEditorController(self.view.editor_view, training_example)
+    REFRESH_RATE = 50
+
+    def __init__(self, camera):
+
+        self.camera = camera
+
+        # Create the view
+        self.root = tk.Tk()
+        self.root.title('Training Examples')
+        self.view = View(self.root, self)
+        self.view.edit_tab.property_editor.add_property(Property.create_string('Name', ('Sean', 'Venkata')))
+        self.view.edit_tab.property_editor.add_property(Property.create_integer('Number', (1, 2, 3)))
+        self.view.grid()
+
+        # Variables to hold state
+        self.edit_state = EditTabState()
+        self.edit_state.register(self.view.edit_tab)
+
+        self.root.after(self.REFRESH_RATE, self.update_capture_feed)
+
+    def run(self):
+        self.root.mainloop()
+
+    def update_capture_feed(self):
+        if self.camera.good():
+            self.feed = self.camera.get_frame()
+            self.view.capture_tab.update_image(self.feed)
+        self.root.after(self.REFRESH_RATE, self.update_capture_feed)
+
+    # CALLBACKS
+
+    def capture_button_click(self):
+        self.edit_state.reset()
+        self.edit_state.set_image(self.feed)
+
+    def mouse_motion_on_labeling_image_display(self, event):
+        self.edit_state.set_cross_pos(event.x, event.y)
+
+    def mouse_click_on_labeling_image_display(self, event):
+        if self.edit_state.is_box_in_progress():
+            self.edit_state.add_label(event.x, event.y)
+        else:
+            self.edit_state.set_box_origin(event.x, event.y)
+
+    def remove_selected_button_click(self):
+        self.edit_state.delete_selected_label()
+
+    def select_label_in_list(self, event):
+        selection = event.widget.curselection()
+        if selection:
+            self.edit_state.set_selected_label(selection[0])
+
+
+camera = FakeCamera()
+#camera = Camera()
+Controller(camera).run()

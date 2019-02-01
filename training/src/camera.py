@@ -28,3 +28,15 @@ class Camera:
             return frame
         else:
             return RuntimeError('Camera could not get frame.')
+
+
+class FakeCamera:
+
+    def __init__(self):
+        pass
+
+    def good(self):
+        return True
+
+    def get_frame(self):
+        return cv.imread('image.jpg', cv.IMREAD_COLOR)
