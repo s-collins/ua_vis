@@ -129,8 +129,11 @@ class Controller:
         self.root = tk.Tk()
         self.root.title('Training Examples')
         self.view = View(self.root, self)
-        self.view.edit_tab.property_editor.add_property(Property.create_string('Name', ('Sean', 'Venkata')))
-        self.view.edit_tab.property_editor.add_property(Property.create_integer('Number', (1, 2, 3)))
+
+        # TODO: populate the property ranges based on database table
+        self.view.edit_tab.property_editor.add_property(Property.create_integer('Camera Angle', tuple(range(0, 91, 10))))
+        self.view.edit_tab.property_editor.add_property(Property.create_integer('Light Angle', tuple(range(0, 361, 20))))
+
         self.view.grid()
 
         # Variables to hold state
