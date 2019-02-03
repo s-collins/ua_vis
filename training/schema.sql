@@ -1,26 +1,18 @@
-CREATE TABLE Project (
-	name VARCHAR(100),
-	created_at TIMESTAMP NOT NULL DEFAULT current_timestamp,
-	PRIMARY KEY (name)
-);
-
 CREATE TABLE TrainingExample (
-	id INT AUTO_INCREMENT,
-	file_path VARCHAR(200),
-	camera_angle INT,
-	light_angle INT,
-	proj_name VARCHAR(100),
-	PRIMARY KEY (ID),
-	FOREIGN KEY (proj_name) REFERENCES Project(name)
-);
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    image_filepath CHAR(100),
+    camera_angle INTEGER,
+    camera_height INTEGER,
+    light_angle INTEGER,
+    PRIMARY KEY (id)
 
 CREATE TABLE Label (
-	id INT AUTO_INCREMENT,
-	image_id INT,
-	x1 INT,
-	x2 INT,
-	y1 INT,
-	y2 INT,
-	PRIMARY KEY (id),
-	FOREIGN KEY (image_id) REFERENCES TrainingExample(id)
+    id INTEGER NOT NULL AUTO_INCREMENT,
+    image_id INTEGER,
+    x1 INTEGER,
+    x2 INTEGER,
+    y1 INTEGER,
+    y2 INTEGER,
+    PRIMARY KEY (id),
+    FOREIGN KEY (image_id) REFERENCES TrainingExample(id)
 );
