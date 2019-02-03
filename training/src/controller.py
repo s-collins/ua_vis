@@ -180,6 +180,6 @@ class Controller:
             self.edit_state.set_selected_label(selection[0])
 
 
-camera = FakeCamera()
-#camera = Camera()
+#camera = FakeCamera()
+camera = Camera()
 Controller(camera).run()

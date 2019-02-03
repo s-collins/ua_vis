@@ -65,5 +65,6 @@ class Controller:
         self.view.root.after(self.view.REFRESH_RATE, self.update_feed)
 
 
-camera = FakeCamera()
+#camera = FakeCamera()
+camera = Camera()
 Controller(camera).run()

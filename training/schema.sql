@@ -5,6 +5,7 @@ CREATE TABLE TrainingExample (
     camera_height INTEGER,
     light_angle INTEGER,
     PRIMARY KEY (id)
+);
 
 CREATE TABLE Label (
     id INTEGER NOT NULL AUTO_INCREMENT,
