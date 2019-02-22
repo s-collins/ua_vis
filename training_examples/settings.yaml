@@ -1,5 +1,5 @@
 # path to root directory containing training example data
-root_dir: /home/sean/Desktop/training_examples/
+root_dir: /home/sean/Documents/projects/ua_vis/
 
 # path to image subdirectory (relative to "root_path")
 images_dir: images/
