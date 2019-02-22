@@ -1,5 +1,5 @@
-CREATE TABLE TrainingExample (
-    id INTEGER NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS TrainingExample (
+    id INTEGER NOT NULL,
     image_filepath CHAR(100),
     camera_angle INTEGER,
     camera_height INTEGER,
@@ -7,8 +7,8 @@ CREATE TABLE TrainingExample (
     PRIMARY KEY (id)
 );
 
-CREATE TABLE Label (
-    id INTEGER NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS Label (
+    id INTEGER NOT NULL,
     image_id INTEGER,
     x1 INTEGER,
     x2 INTEGER,
