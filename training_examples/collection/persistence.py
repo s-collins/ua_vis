@@ -11,18 +11,21 @@ import os
 stream = open('settings.yaml', 'r')
 settings = yaml.load(stream)
 stream.close()
+
+# Construct filepaths
+context = os.path.abspath('../..') + '/'
 images_dir = settings['root_dir'] + settings['images_dir']
 db_dir = settings['root_dir'] + settings['db_dir']
 db_path = db_dir + settings['db_name']
 
 # Create directories if they don't already exist
-if not os.path.exists(settings['root_dir']):
-	os.makedirs(images_dir)
-	os.makedirs(db_dir)
+if not os.path.exists(context + settings['root_dir']):
+	os.makedirs(context + images_dir)
+	os.makedirs(context + db_dir)
 
 # Generate schema if does not already exist
 schema_definition = open('schema.sql', 'r').read()
-conn = sqlite3.connect(db_path)
+conn = sqlite3.connect(context + db_path)
 cursor = conn.cursor()
 cursor.executescript(schema_definition)
 conn.commit()
@@ -36,7 +39,7 @@ class Persistence:
 
 	def __init__(self):
 		"""Connects to database"""
-		self.conn = sqlite3.connect(db_path)
+		self.conn = sqlite3.connect(context + db_path)
 
 	def __del__(self):
 		"""Disconnects from database"""
@@ -56,7 +59,7 @@ class Persistence:
 
 		# Save image
 		image_path = images_dir + str(ex_id) + '.jpg'
-		cv.imwrite(image_path, ex.image)
+		cv.imwrite(context + image_path, ex.image)
 
 		# Save image path (now that we know record id)
 		query = """\
