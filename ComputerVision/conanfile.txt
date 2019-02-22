@@ -1,6 +1,0 @@
-[requires]
-opencv/3.4.2@bincrafters/stable
-gtest/1.8.1@bincrafters/stable
-
-[generators]
-cmake
